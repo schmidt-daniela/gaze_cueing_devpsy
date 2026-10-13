@@ -1,0 +1,2 @@
+rec_name	experiment	cal_acc_mm	cal_precsd_mm	cal_precrms_mm	cal_acc_deg	cal_precsd_deg	cal_precrms_deg	cal_acc_px	cal_precsd_px	cal_precrms_px	val_acc_mm	val_precsd_mm	val_precrms_mm	val_acc_deg	val_precsd_deg	val_precrms_deg	val_acc_px	val_precsd_px	val_precrms_px
+Recording39	Experiment4	3.5	15.2	13.7	0.29	1.27	1.16	13	55	50	7.1	9.7	6.3	0.64	0.86	0.57	26	35	23

@@ -1,0 +1,25 @@
+# macOS and temporary Office files
+.DS_Store
+~$*
+
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Data folders
+/data/first/raw_all/
+/data/first/raw_included/
+/data/third/raw_all/
+/data/third/raw_included/
+/data/first/marlene_preproc/
+/data/third/marlene_preproc/
+
+# Other folders
+/docs/
+/img_old/
+/power_followup/
+
+# R scripts
+/3_descriptives_first_julian.R
+/3_descriptives_third_julian.R
