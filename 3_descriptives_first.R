@@ -3,7 +3,7 @@ rm(list = ls())
 
 # Adjust Parameters -------------------------------------------------------
 mean_or_median <- "median" # Write "mean" or "median" to get a subset with only included trials based on mean- or median-2sd-criterion (saved in df_included).
-dropna_or_not_included <- "dropna"  # Write "dropna" or "not". If "dropna", then all NAs in the main dependent measure o_SRT_reactive_sample will be dropped in df_included.
+dropna_or_not_included <- "not"  # Write "dropna" or "not". If "dropna", then all NAs in the main dependent measure o_SRT_reactive_sample will be dropped in df_included.
                                     # df_included is the dataframe that was filtered wrt exclusion criterion. It only contains valid trials.
                                     # This means, that you cannot analyse, e.g., predicte looks, because valide predicted looks might get dropped.
 dropna_or_not_total <- "not"  # Write "dropna" or "not". If "dropna", then all NAs in the main dependent measure o_SRT_reactive_sample will be dropped in df_tot.
@@ -17,7 +17,10 @@ library(tidyverse)
 # Read Data ---------------------------------------------------------------
 df_tot <- data.frame()
 for(i in c("4","6","9", "18", "adult")){
-  for(j in c(1:36)){
+  
+  sample_size <- length(list.files(here("data", "first", "preproc", i), pattern = "\\.tsv$"))
+  
+  for(j in c(1:sample_size)){
     
     age_group <- i
     filenames <- list.files(path = here("data", "first", "preproc", age_group))
@@ -39,7 +42,10 @@ for(i in c("4","6","9", "18", "adult")){
 # Read Data (Marlene Calculation) -----------------------------------------
 df_tot_marlene <- data.frame()
 for(i in c("4","6","9", "18", "adult")){
-  for(j in c(1:36)){
+  
+  sample_size <- length(list.files(here("data", "first", "preproc", i), pattern = "\\.tsv$"))
+
+  for(j in c(1:sample_size)){
     
     age_group <- i
     filenames <- list.files(path = here("data", "first", "marlene_preproc", age_group))
@@ -56,16 +62,15 @@ for(i in c("4","6","9", "18", "adult")){
   }
 }
 
-
 # Plot (Marlene Calculation) ----------------------------------------------
-df_plot <- df_tot_marlene %>%
+df_plot <- df_tot_marlene |> 
   mutate(AgeGroup_Clean = case_when(
     AgeGroup %in% c("A4", "A6") ~ "Adults",
     AgeGroup == "C4"  ~ "4-Month-Olds",
     AgeGroup == "C6"  ~ "6-Month-Olds",
     AgeGroup == "C9"  ~ "9-Month-Olds",
     AgeGroup == "C18" ~ "18-Month-Olds"
-  )) %>%
+  )) |> 
   mutate(AgeGroup_Clean = factor(AgeGroup_Clean, 
                                  levels = c("4-Month-Olds", "6-Month-Olds", 
                                             "9-Month-Olds", "18-Month-Olds", "Adults")))
@@ -80,7 +85,6 @@ ggplot(df_plot, aes(x = AgeGroup_Clean, y = marlene_coefficient, color = AgeGrou
   labs(
     x = "Age Group",
     y = "Marlene Coefficient",
-    #caption = "Error bars represent 95% confidence intervals"
   ) +
   theme(
     legend.position = "none",
@@ -89,11 +93,13 @@ ggplot(df_plot, aes(x = AgeGroup_Clean, y = marlene_coefficient, color = AgeGrou
   ) +
   scale_y_continuous(breaks = seq(-100, 200, by = 10))
 
-
 # Read Data ---------------------------------------------------------------
 df_tot <- data.frame()
 for(i in c("4","6","9", "18", "adult")){
-  for(j in c(1:36)){
+  
+  sample_size <- length(list.files(here("data", "first", "preproc", i), pattern = "\\.tsv$"))
+  
+  for(j in c(1:sample_size)){
     
     age_group <- i
     filenames <- list.files(path = here("data", "first", "preproc", age_group))
@@ -149,8 +155,10 @@ df_included |>
   group_by(AgeGroup, ID, Condition) |> 
   summarize(TrialNumber = n()) |> 
   group_by(AgeGroup, Condition) |> 
-  summarize(ValidTrialSD = sd(TrialNumber),
-            ValidTrialMean = mean(TrialNumber))
+  summarize(ValidTrialMax = max(TrialNumber, na.rm = T),
+            ValidTrialMin = min(TrialNumber, na.rm = T),
+            ValidTrialSD = sd(TrialNumber, na.rm = T),
+            ValidTrialMean = mean(TrialNumber, na.rm = T))
 
 # Descriptives ------------------------------------------------------------
 df_included |> 
@@ -195,7 +203,8 @@ df_plot_0 <- df_included_2 |>
   group_by(AgeGroup, Con_outcon) |>
   summarize(sd_o_SRT_reactive_sample = sd(o_SRT_reactive_sample, na.rm = T),
             o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) |>
-  mutate(participants = ifelse(AgeGroup == "6M", 33, 36)) |>
+  mutate(participants = ifelse(AgeGroup == "4M", 
+                               df_tot |> filter(AgeGroup == "4M") |> pull(ID) |> unique() |> length(), 36)) |>
   mutate(se = sd_o_SRT_reactive_sample / sqrt(participants),
          ci_lower = o_SRT_reactive_sample - qt(0.975, df = participants - 1) * se,
          ci_upper = o_SRT_reactive_sample + qt(0.975, df = participants - 1) * se) |>
@@ -225,7 +234,8 @@ df_plot_1 <- df_included |>
   group_by(AgeGroup, Con_shared) |>
   summarize(sd_o_SRT_reactive_sample = sd(o_SRT_reactive_sample, na.rm = T),
             o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) |>
-  mutate(participants = ifelse(AgeGroup == "6M", 33, 36)) |>
+  mutate(participants = ifelse(AgeGroup == "4M", 
+                               df_tot |> filter(AgeGroup == "4M") |> pull(ID) |> unique() |> length(), 36)) |>
   mutate(se = sd_o_SRT_reactive_sample / sqrt(participants),
          ci_lower = o_SRT_reactive_sample - qt(0.975, df = participants - 1) * se,
          ci_upper = o_SRT_reactive_sample + qt(0.975, df = participants - 1) * se) |>
@@ -255,7 +265,8 @@ df_plot_2 <- df_included |>
   group_by(AgeGroup, CueingDir) |>
   summarize(sd_o_SRT_reactive_sample = sd(o_SRT_reactive_sample, na.rm = T),
             o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) |>
-  mutate(participants = ifelse(AgeGroup == "6M", 33, 36)) |>
+  mutate(participants = ifelse(AgeGroup == "4M", 
+                               df_tot |> filter(AgeGroup == "4M") |> pull(ID) |> unique() |> length(), 36)) |>
   mutate(se = sd_o_SRT_reactive_sample / sqrt(participants),
          ci_lower = o_SRT_reactive_sample - qt(0.975, df = participants - 1) * se,
          ci_upper = o_SRT_reactive_sample + qt(0.975, df = participants - 1) * se) |>
@@ -293,7 +304,8 @@ df_plot_3 <- df_included_2 |>
   group_by(AgeGroup, Condition, ConNo) |>
   summarize(sd_o_SRT_reactive_sample = sd(o_SRT_reactive_sample, na.rm = T),
             o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) |>
-  mutate(participants = ifelse(AgeGroup == "6M", 33, 36)) |>
+  mutate(participants = ifelse(AgeGroup == "4M",
+                               df_tot |> filter(AgeGroup == "4M") |> pull(ID) |> unique() |> length(), 36)) |>
   mutate(se = sd_o_SRT_reactive_sample / sqrt(participants),
          ci_lower = o_SRT_reactive_sample - qt(0.975, df = participants - 1) * se,
          ci_upper = o_SRT_reactive_sample + qt(0.975, df = participants - 1) * se) |>
@@ -319,7 +331,8 @@ df_plot_4 <- df_included |>
   group_by(AgeGroup, RunningTrial) |>
   summarize(sd_o_SRT_reactive_sample = sd(o_SRT_reactive_sample, na.rm = T),
             o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) |> 
-  mutate(participants = ifelse(AgeGroup == "6M", 33, 36)) |> 
+  mutate(participants = ifelse(AgeGroup == "4M", 
+                               df_tot |> filter(AgeGroup == "4M") |> pull(ID) |> unique() |> length(), 36)) |>
   mutate(se = sd_o_SRT_reactive_sample / sqrt(participants),
          ci_lower = o_SRT_reactive_sample - qt(0.975, df = participants - 1) * se,
          ci_upper = o_SRT_reactive_sample + qt(0.975, df = participants - 1) * se) |> 
@@ -381,7 +394,7 @@ ggplot(df_plot_6, aes(x = AgeGroup, y = n, fill = o_FL_AOI_reactive_fixation)) +
 
 t_df <- df_included |> 
   filter(AgeGroup == "4M") |> 
-  filter(CueingDir == "up") |> 
+  #filter(CueingDir == "up") |> 
   select(ID, RunningTrial, Condition, o_SRT_reactive_sample) |> 
   group_by(ID, Condition) |> 
   summarize(o_SRT_reactive_sample = mean(o_SRT_reactive_sample, na.rm = T)) 
