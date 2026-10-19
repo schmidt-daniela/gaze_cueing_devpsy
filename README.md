@@ -89,11 +89,7 @@ renv::status()
 
 ### 3. Run the Analysis Scripts
 
-Run the scripts from within the opened R project. The preprocessing and descriptive analysis scripts depend on the corresponding data being available in the expected directories.
-
-The participant inclusion script (`1_inclusion_both.R`) depends on study protocols that are not publicly shared. It is therefore not directly usable with the public repository alone.
-
 ## 📩 Data Requests
 
-The raw data may be available upon request from the researchers involved in this project. Please contact **[Maleen Thiele](https://scholar.google.com/citations?user=akL3_ssAAAAJ&hl=de)** to enquire about access.
+The raw data is available upon request from the researchers involved in this project. Please contact **[Maleen Thiele](https://scholar.google.com/citations?user=akL3_ssAAAAJ&hl=de)** to enquire about access.
 
