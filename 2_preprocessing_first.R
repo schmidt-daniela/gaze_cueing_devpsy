@@ -46,11 +46,14 @@ library(here)
 library(tidyverse)
 
 # Adjust Parameter --------------------------------------------------------
-for(i in c(1:36)){
-age_group <- 6 # 4, 6, 9, 18, or "adult"
-filenames <- list.files(path = here("data", "first", "raw_included", age_group))
-n <- i
-filename <- filenames[n]
+age_group <- 4 # 4, 6, 9, 18 or "adult"
+
+sample_size <- length(list.files(here("data", "first", "raw_included", age_group), pattern = "\\.tsv$"))
+for(i in c(1:sample_size)){
+  filenames <- list.files(path = here("data", "first", "raw_included", age_group))
+  n <- i
+  filename <- filenames[n]
+  
 
 # Read Data ---------------------------------------------------------------
 raw <- read.table(here("data", "first", "raw_included", age_group, filename), header = T, sep = "\t")
