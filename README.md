@@ -38,17 +38,15 @@ The `data/` directory is organized by condition and data type.
 Contains information relevant to both conditions:
 
 - `calibration_tobii/` — Tobii calibration results for individual participants.
-- `distribution_experiments/` — Summaries of how often each of the four Tobii timelines was presented within each age group. Four timelines were created to counterbalance a potentially influential factor.
+- `distribution_experiments/` — Summaries of how often each of the four Tobii timelines was presented within each age group. Four timelines were created to counterbalance potentially influential factors.
 - `exclusion_reasons/` — Files summarizing participant exclusion reasons by age group.
 - `final_sample_information/` — Participant information, including age and sex.
 
 #### `data/first/` and `data/third/`
 
-Each condition has its own data directory.
-
-- `preproc/` — Preprocessed eye-tracking data, organized by age group.
-- `raw_all/` — Directory intended for raw eye-tracking data.
-- `raw_included/` — Directory intended for raw eye-tracking data from included participants.
+- `preproc/` — Preprocessed eye-tracking data.
+- `raw_all/` — Raw eye-tracking data.
+- `raw_included/` — Raw eye-tracking data from included participants.
 
 **Note:** Raw eye-tracking data are not included in the public repository due to storage constraints. The study protocols used for participant inclusion are also not publicly available for privacy reasons.
 
