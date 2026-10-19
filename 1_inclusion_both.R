@@ -2,12 +2,12 @@
 rm(list = ls())
 
 # Adjust Parameter --------------------------------------------------------
-party <- "first" # "first" or "third"
-sheet_name <- "4 mo" # "4 mo", "6 mo", "9 mo", "18 mo", or "adults"
-ifelse(sheet_name %in% c("4 mo", "6 mo", "adults"),
+party <- "first" # adjust: "first" or "third"
+sheet_name <- "4 mo" # adjust: "4 mo", "6 mo", "9 mo", "18 mo", or "adults"
+ifelse(sheet_name %in% c("4 mo", "6 mo", "adults"), # don't adjust anything here
        protocol_name <- paste0("studyprotocol_cajo46_", party, ".xlsx"),
        protocol_name <- paste0("studyprotocol_cajo918_", party, ".xlsx"))
-age_group <- 4 # 4, 6, 9, 18 or "adult"
+age_group <- 4 # adjust: 4, 6, 9, 18 or "adult"
 
 # Packages ----------------------------------------------------------------
 library(here)
