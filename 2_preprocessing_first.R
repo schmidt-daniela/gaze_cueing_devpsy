@@ -46,7 +46,7 @@ library(here)
 library(tidyverse)
 
 # Adjust Parameter --------------------------------------------------------
-age_group <- 4 # 4, 6, 9, 18 or "adult"
+age_group <- 9 # adjust: 4, 6, 9, 18 or "adult"
 
 sample_size <- length(list.files(here("data", "first", "raw_included", age_group), pattern = "\\.tsv$"))
 for(i in c(1:sample_size)){
@@ -61,6 +61,8 @@ df <- raw
 
 # Data Preparation --------------------------------------------------------
 ## Separate information about trials, etc. ----
+# In column "stimulus" "move" means moving/looming/shrinking and extending object and "still" means the object after it was looked at
+# for 150ms (gaze-contingent criterion). "at" is attention getter. "cueing" is the complete actor-video.
 df <- df |> 
   separate(Presented.Stimulus.name, into = c("trial", "task", "stimulus", "cond_both", "cond_jointness", "cue_direction",
                                              "cond_congruence", "actor", "actor_location", "object_identity", "object_location", "cond_party"), remove = F) |> 
@@ -90,10 +92,10 @@ df$aoi_screen_fix <- "off" # fix = based on fixations (refers to whole screen AO
 df$aoi_fix <- "not_in_aoi" # fix = based on fixations (refers to object and actor AOI)
 df$aoi_gs <- "not_in_aoi" # gs = based on gaze sample (refers to object and actor AOI)
 
-# Objects (fixation based)
-top_object <- which(df$fix_x >= (aoi_screen_x_left) & df$fix_x <= (aoi_screen_x_right) & 
+# Screen (fixation based)
+screen <- which(df$fix_x >= (aoi_screen_x_left) & df$fix_x <= (aoi_screen_x_right) & 
                       df$fix_y >= (aoi_screen_y_top) & df$fix_y <= (aoi_screen_y_bottom))
-df[top_object,"aoi_screen_fix"] <- "on"
+df[screen,"aoi_screen_fix"] <- "on"
 
 # Objects (fixation based)
 top_object <- which(df$fix_x >= (aoi_topobject_x_topleft) & df$fix_x <= (aoi_topobject_x_botright) & 
@@ -131,11 +133,12 @@ right_actor <- which(df$x >= (aoi_rightface_x_left) & df$x <= (aoi_rightface_x_r
                        df$y >= (aoi_rightface_y_top) & df$y <= (aoi_rightface_y_bottom))
 df[right_actor,"aoi_gs"] <- "right_actor"
 
+# Only matters for first party, excludes cases in which infants looked at "void actor area"
+# (i.e. area where no actor is presented).
 df[which(df$actor_location == "left" & df$aoi_fix == "right_actor"), "aoi_fix"] <- NA
-df[which(df$actor_location == "left" & df$aoi_fix == "right_actor"), "aoi_gs"] <- NA
+df[which(df$actor_location == "left" & df$aoi_gs == "right_actor"), "aoi_gs"] <- NA
 df[which(df$actor_location == "right" & df$aoi_fix == "left_actor"), "aoi_fix"] <- NA
-df[which(df$actor_location == "right" & df$aoi_fix == "left_actor"), "aoi_gs"] <- NA
-print(nrow(df))
+df[which(df$actor_location == "right" & df$aoi_gs == "left_actor"), "aoi_gs"] <- NA
 
 # Latencies -----------------------------------------------------
 ## o_SRT_reactive_sample and o_SRT_reactive_fixation ----
@@ -191,6 +194,9 @@ if(age_group == "adult"){
 
 # Only include trials with at least 200ms cumulative fixation time on faces during (no) eye contact sequence AND
 # at least 200ms cumulative fixation time on faces during the gaze-cueing sequence
+
+# This code block identifies trials in which either during eyecontact or during objectgaze or during both,
+# the infants exhibited less than 200ms fixation time on the actor. 
 Excluded_200ms_1 <- df |>  
   filter(aoi_fix %in% c("left_actor", "right_actor")) |> 
   filter(stimulus %in% c("cueing_eyecontact", "cueing_objectgaze")) |> 
@@ -201,6 +207,8 @@ Excluded_200ms_1 <- df |>
   filter(cueing_eyecontact < 200 | cueing_objectgaze < 200 | is.na(cueing_eyecontact) | is.na(cueing_objectgaze)) |>
   pull(trial)
 
+# This code block identifies trials in which no fixation time during eyecontact AND no fixation time
+# during objectgaze was shown. (There may be a smarter way of coding this.)
 Excluded_200ms_2 <- df |>  
   filter(stimulus %in% c("cueing_eyecontact", "cueing_objectgaze")) |> 
   group_by(cond_both, cond_jointness, cond_congruence, trial, stimulus, aoi_fix) |>
@@ -245,7 +253,8 @@ if(Excluded_2SD_Median |> length() > 0){df$Excluded_2SD_Median <- ifelse(df$tria
 if(Excluded_2SD_Median |> length() == 0){df$Excluded_2SD_Median <- "no"}
 
 # Add valid-trials column
-df$Valid_trial<- ifelse(df$Excluded_100ms == "no" & df$Excluded_200ms == "no" & df$Excluded_2SD_Mean == "no" & df$Excluded_2SD_Median == "no", 1, 0)
+df$Valid_trial_mean <- ifelse(df$Excluded_100ms == "no" & df$Excluded_200ms == "no" & df$Excluded_2SD_Mean == "no", 1, 0)
+df$Valid_trial_median <- ifelse(df$Excluded_100ms == "no" & df$Excluded_200ms == "no" & df$Excluded_2SD_Median == "no", 1, 0)
 
 # Add More Columns --------------------------------------------------------
 
@@ -471,8 +480,6 @@ o_fl_reactive_fixation[which(o_fl_reactive_fixation$object_location == "bottom" 
 ## o_FL_AOI_predictive_sample and o_FL_AOI_predictive_fixation ----
 # Outcome phase: AOI that is being looked at first after cueing motion started (i.e., from 2001 onwards) first sample arrives in AOI, captured until object onset (i.e., video start of moving object) (concue_conobj = first gaze sample was congruent to cueing direction and congruent to object location; inconcue_conobj, concue_inconobj, inconcue_inconobj)
 # Outcome phase: AOI that is being looked at first after cueing motion started (i.e., from 2001 onwards) first fixation arrives in AOI, captured until object onset (i.e., video start of moving object) (concue_conobj = first gaze sample was congruent to cueing direction and congruent to object location; inconcue_conobj, concue_inconobj, inconcue_inconobj)
-# sample-based
-# fixation-based
 
 # sample-based
 o_fl_predictive_sample <- df |> 
@@ -518,7 +525,7 @@ o_fl_predictive_fixation[which(o_fl_predictive_fixation$object_location == "bott
 o_fl_predictive_fixation[which(o_fl_predictive_fixation$object_location == "top" & o_fl_predictive_fixation$cue_direction == "up" &  o_fl_predictive_fixation$aoi_fix == "bottom"),"o_FL_AOI_predictive_fixation"] <- "inconcue_inconobj"
 o_fl_predictive_fixation[which(o_fl_predictive_fixation$object_location == "bottom" & o_fl_predictive_fixation$cue_direction == "down" &  o_fl_predictive_fixation$aoi_fix == "top"),"o_FL_AOI_predictive_fixation"] <- "inconcue_inconobj"
 
-## o_SRT_predictive_sample and o_SRT_predictive_fixation
+## o_SRT_predictive_sample and o_SRT_predictive_fixation ----
 # Outcome phase: Saccadic Reaction Time MAIN DEPENDENT MEASURE! Time interval between the start of cueing motion (i.e., from 2001 onwards) until object onset (i.e., video start of moving object), based on first sample appearance of the target object (video start) and the arrival of the infant’s gaze (not fixation) in the respective target AOI (i.e., the outcome position)
 # Outcome phase: Saccadic Reaction Time SECONDARY DEPENDENT MEASURE (keine prio, nur zum exploren) Time interval between the start of cueing motion (i.e., from 2001 onwards) until object onset (i.e., video start of moving object), Time interval between the appearance of the target object (video start) and the arrival of the infant’s gaze of first fixation in the respective target AOI (i.e., the outcome position)
 
@@ -548,12 +555,9 @@ latencies_predicitive_fix <- df |>
   ungroup() |> 
   rename(o_SRT_predictive_fixation = timeline)
 
-
 # o_SRT_valid_fixation and o_SRT_valid_sample
 # If column “SRT_predictive_fixation” has data, then copy this data in this column here, otherwise use data from “SRT_reactive_fixation” column (if both reactive and predictive have data, predictive should be considered as the real initial response)
 # If column “SRT_predictive_sample” has data, then copy this data in this column here, otherwise use data from “SRT_reactive_sample” column (if both reactive and predictive have data, predictive should be considered as the real initial response)
-# sample-based
-# fixation-based
 
 # Create DF Final ---------------------------------------------------------
 df_final <- df |> select(trial, stimulus, Presented.Stimulus.name) |> rename(RunningTrial = trial) |> filter(!(stimulus %in% c(NA, "checkflake", "at", "Kalei1", "Kalei2", "Kalei3", "Kalei4", "Kalei5", "Kalei6"))) |> filter(str_detect(Presented.Stimulus.name, "move")) |> group_by(RunningTrial) |> slice(1) |> ungroup() |> select(RunningTrial, Presented.Stimulus.name) |> 
