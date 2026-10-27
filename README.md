@@ -33,15 +33,6 @@ Previous research has shown that preverbal infants show covert gaze-cueing effec
 
 The `data/` directory is organized by condition and data type.
 
-#### `data/both/`
-
-Contains information relevant to both conditions:
-
-- `calibration_tobii/` — Tobii calibration results for individual participants.
-- `distribution_experiments/` — Summaries of how often each of the four Tobii timelines was presented within each age group. Four timelines were created to counterbalance potentially influential factors.
-- `exclusion_reasons/` — Files summarizing participant exclusion reasons by age group.
-- `final_sample_information/` — Participant information, including age and sex.
-
 #### `data/first/` and `data/third/`
 
 - `preproc/` — Preprocessed eye-tracking data.
