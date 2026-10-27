@@ -45,7 +45,7 @@ library(here)
 library(tidyverse)
 
 # Adjust Parameter --------------------------------------------------------
-age_group <- 9 # 4, 6, 9, 18 or "adult"
+age_group <- "adult" # 4, 6, 9, 18 or "adult"
 exclusion_criterion_200ms <- "fixation_all" # "fixation_all" or "samples_all" or "fixation_all_except_4mfollowup"
 
 sample_size <- length(list.files(here("data", "third", "raw_included", age_group), pattern = "\\.tsv$"))
@@ -549,12 +549,13 @@ latencies_predicitive_gs <- df |>
   group_by(trial, stimulus) |> 
   mutate(timeline = cumsum(gaze_sample_duration)) |> 
   ungroup() |> 
-  select(x, y, Presented.Stimulus.name, trial, timeline, aoi_gs) |>
+  select(x, y, Presented.Stimulus.name, trial, timeline, cue_direction, aoi_gs) |>
   filter(aoi_gs %in% c("top", "bottom")) |>
   group_by(trial) |> 
   slice(1) |> 
   ungroup() |> 
-  rename(o_SRT_predictive_sample = timeline)
+  rename(o_SRT_predictive_sample = timeline) |> 
+  filter((cue_direction == "down" & aoi_gs == "bottom") | (cue_direction == "up" & aoi_gs == "top")) # only leave the cases in which the first predicitive look aoi and the cueing direction aligned with each other (both top or bottom)
 
 # fixation-based
 latencies_predicitive_fix <- df |> 
@@ -562,13 +563,13 @@ latencies_predicitive_fix <- df |>
   group_by(trial, stimulus) |> 
   mutate(timeline = cumsum(gaze_sample_duration)) |> 
   ungroup() |> 
-  select(x, y, Presented.Stimulus.name, trial, timeline, aoi_fix) |>
+  select(x, y, Presented.Stimulus.name, trial, timeline, cue_direction, aoi_fix) |>
   filter(aoi_fix %in% c("top", "bottom")) |>
   group_by(trial) |> 
   slice(1) |> 
   ungroup() |> 
-  rename(o_SRT_predictive_fixation = timeline)
-
+  rename(o_SRT_predictive_fixation = timeline) |> 
+  filter((cue_direction == "down" & aoi_fix == "bottom") | (cue_direction == "up" & aoi_fix == "top")) # only leave the cases in which the first predicitive look aoi and the cueing direction aligned with each other (both top or bottom)
 
 # o_SRT_valid_fixation and o_SRT_valid_sample
 # If column “SRT_predictive_fixation” has data, then copy this data in this column here, otherwise use data from “SRT_reactive_fixation” column (if both reactive and predictive have data, predictive should be considered as the real initial response)
