@@ -45,7 +45,7 @@ library(here)
 library(tidyverse)
 
 # Adjust Parameter --------------------------------------------------------
-age_group <- "adult" # 4, 6, 9, 18 or "adult"
+age_group <- 4 # 4, 6, 9, 18 or "adult"
 exclusion_criterion_200ms <- "fixation_all" # "fixation_all" or "samples_all" or "fixation_all_except_4mfollowup"
 
 sample_size <- length(list.files(here("data", "third", "raw_included", age_group), pattern = "\\.tsv$"))
