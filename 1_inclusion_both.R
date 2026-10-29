@@ -67,6 +67,10 @@ if (!(filenames_tot |>
   
   stop("The number of included files does not match the number of included infants.\nCheck for typos in protocol and filenames.")
 }
+# if the script stops, please excute the following two codes:
+# filenames_tot |> filter(cleaned %in% included_infants$no_rec_exp) |> pull(cleaned) |> sort()
+# included_infants |> pull(no_rec_exp) |> sort()
+# manually check the discrepancy between the two vectors to find the (probably typo) error
 
 # Save included files -----------------------------------------------------
 for (filename in filesnames_to_read) {
