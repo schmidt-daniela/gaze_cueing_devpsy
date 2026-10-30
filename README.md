@@ -80,7 +80,7 @@ renv::status()
 
 ### 3. Run the Analysis Scripts
 
-## 📩 Data Requests
+## 📩 Data Request
 
 The raw data is available upon request from the researchers involved in this project. Please contact **[Maleen Thiele](https://scholar.google.com/citations?user=akL3_ssAAAAJ&hl=de)** to enquire about access.
 
