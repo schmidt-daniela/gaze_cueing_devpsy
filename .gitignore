@@ -1,7 +1,6 @@
 # macOS and temporary Office files
 .DS_Store
 ~$*
-
 .Rproj.user
 .Rhistory
 .RData
